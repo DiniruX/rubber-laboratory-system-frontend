@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { IoLogOut } from "react-icons/io5";
-import { GrStatusGoodSmall } from "react-icons/gr";
 
 function Homepage() {
   const [selectedOrderType, setSelectedOrderType] = useState("not_started");
@@ -20,24 +19,24 @@ function Homepage() {
         <h2 className="page-heading">Customer Orders</h2>
         <div className="order-container">
           <div className="btn-group" role="group">
-            <a
+            <div
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("not_started")}
             >
               Not Started
-            </a>
-            <a
+            </div>
+            <div
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("in_progress")}
             >
               In Progress
-            </a>
-            <a
+            </div>
+            <div
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("completed")}
             >
               Completed
-            </a>
+            </div>
           </div>
           <div className="order-table-container">
             {selectedOrderType === "not_started" ? (
@@ -62,7 +61,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Review</a>
+                        <div>Review</div>
                       </td>
                     </tr>
                     <tr>
@@ -72,7 +71,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Review</a>
+                        <div>Review</div>
                       </td>
                     </tr>
                     <tr>
@@ -82,7 +81,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Review</a>
+                        <div>Review</div>
                       </td>
                     </tr>
                   </tbody>
@@ -111,7 +110,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Continue Working</a>
+                        <div>Continue Working</div>
                       </td>
                     </tr>
                     <tr>
@@ -121,7 +120,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Continue Working</a>
+                        <div>Continue Working</div>
                       </td>
                     </tr>
                     <tr>
@@ -131,7 +130,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Continue Working</a>
+                        <div>Continue Working</div>
                       </td>
                     </tr>
                   </tbody>
@@ -160,7 +159,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Start Working</a>
+                        <div>Start Working</div>
                       </td>
                     </tr>
                     <tr>
@@ -170,7 +169,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Start Working</a>
+                        <div>Start Working</div>
                       </td>
                     </tr>
                     <tr>
@@ -180,7 +179,7 @@ function Homepage() {
                       <td>Mark</td>
                       <td>Mark</td>
                       <td>
-                        <a href="#">Start Working</a>
+                        <div>Start Working</div>
                       </td>
                     </tr>
                   </tbody>

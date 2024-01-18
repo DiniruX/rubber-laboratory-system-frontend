@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "../Styles.css";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Registration() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     customerName: "",
     address: "",

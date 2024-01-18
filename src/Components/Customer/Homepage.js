@@ -248,11 +248,11 @@ function Homepage() {
                         )}
                       </td>
                       <td>
-                        <a onClick={() => handleSelectedOrder(val._id)}>
+                        <div onClick={() => handleSelectedOrder(val._id)}>
                           <div className="icon-background">
                             <FaEye />
                           </div>
-                        </a>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -302,9 +302,9 @@ function Homepage() {
                 Rs. {calculateTotalAmount()}/=
               </p>
             </div>
-            <a className="btn btn-primary" onClick={handleSubmit}>
+            <button className="btn btn-primary" onClick={handleSubmit}>
               Complete Order
-            </a>
+            </button>
           </form>
         </div>
       )}

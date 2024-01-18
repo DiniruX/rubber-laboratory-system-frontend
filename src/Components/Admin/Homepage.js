@@ -125,30 +125,30 @@ function Homepage() {
         <h2 className="page-heading">Admin Dashboard</h2>
         <div className="order-container">
           <div className="btn-group" role="group">
-            <a
+            <button
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("tests")}
             >
               All Tests
-            </a>
-            <a
+            </button>
+            <button
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("orders")}
             >
               All Orders
-            </a>
-            <a
+            </button>
+            <button
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("customers")}
             >
               All Users
-            </a>
-            <a
+            </button>
+            <button
               className="btn btn-dark order-type-btn"
               onClick={() => selectOrderType("info")}
             >
               Information
-            </a>
+            </button>
           </div>
           <div className="order-table-container">
             {selectedOrderType === "tests" ? (
@@ -208,7 +208,7 @@ function Homepage() {
                             {eventDate.getFullYear()}
                           </td>
                           <td>
-                            <a href="#">Review</a>
+                            <button className="btn btn-primary">Review</button>
                           </td>
                         </tr>
                       );
@@ -274,7 +274,7 @@ function Homepage() {
                             {eventDate.getFullYear()}
                           </td>
                           <td>
-                            <a href="#">Review</a>
+                            <button className="btn btn-primary">Review</button>
                           </td>
                         </tr>
                       );
@@ -349,7 +349,7 @@ function Homepage() {
                             {eventDate.getFullYear()}
                           </td>
                           <td>
-                            <a href="#">Review</a>
+                            <button className="btn btn-primary">Review</button>
                           </td>
                         </tr>
                       );
@@ -427,9 +427,9 @@ function Homepage() {
                 <FaPlus />
               </div>
             </div>
-            <a className="btn btn-primary" onClick={handleSubmit}>
+            <button className="btn btn-primary" onClick={handleSubmit}>
               Add Test
-            </a>
+            </button>
           </form>
         </div>
       )}
