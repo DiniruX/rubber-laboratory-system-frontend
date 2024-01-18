@@ -1,0 +1,160 @@
+.page-heading {
+  margin: 30px 0px;
+  white-space: nowrap;
+}
+
+.page-subheading {
+  margin: 10px 0px;
+  white-space: nowrap;
+  display: flex;
+}
+
+.form {
+  padding: 10px 0px;
+}
+
+.login-container {
+  display: flex;
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  height: 100vh;
+}
+
+.form-label {
+  font-size: 15px;
+}
+
+.form-control {
+  font-size: 15px;
+}
+
+.btn {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sub-text {
+  font-size: 15px;
+}
+
+.card-title {
+  margin: 30px 0px 10px 0px;
+}
+
+.homepage-icons {
+  display: flex;
+  justify-content: right; /* Horizontal centering */
+  margin: 0px 5px;
+}
+
+.icon-background {
+  height: 50px;
+  width: 50px;
+  background-color: rgb(214, 214, 214);
+  border-radius: 25px;
+  border: 2px solid rgb(200, 200, 200);
+  margin: 10px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.table-container {
+  margin: 0px 0px 60px 0px;
+}
+
+.thead {
+  background-color: black;
+  color: white;
+}
+
+.status-good {
+  color: green;
+}
+
+.status-progress {
+  color: rgb(255, 145, 0);
+  font-size: 15px;
+}
+
+.status-bad {
+  color: red;
+  font-size: 15px;
+}
+
+.order-type-btn:hover {
+  background-color: rgb(218, 218, 218);
+}
+
+.order-table-container {
+  background-color: rgb(251, 251, 251);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.add-order-model {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-model-closer {
+  color: #000000;
+  margin: 0px 0% 0px auto;
+  font-size: 40px;
+  cursor: pointer;
+  display: flex;
+}
+
+.add-order-form {
+  background-color: white;
+  padding: 10px;
+  border-radius: 10px;
+  width: 40%;
+}
+
+.add-order-form-control {
+  width: 100%;
+}
+
+.row-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: left;
+}
+
+.test-outputs-form-control {
+  width: 50%;
+  position: relative;
+  margin: 0px 0px 10px 0px;
+}
+
+.minus-icon {
+  position: absolute;
+  left: 48%;
+  margin: -35px 0px 0px 0px;
+  color: #bcbcbc;
+}
+
+.order-detail-title {
+    background-color: blanchedalmond;
+    margin: 1px 0px 1px 0px;
+    padding: 5px 5px;
+    font-weight: 600;
+}
+
+.order-detail-info{
+    background-color: rgb(255, 255, 255);
+    margin: 1px 0px 1px 0px;
+    padding: 5px 5px;
+}
