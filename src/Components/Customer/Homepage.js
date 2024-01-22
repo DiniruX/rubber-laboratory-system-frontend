@@ -76,7 +76,10 @@ function Homepage() {
       .get("http://localhost:8000/tests/get-all")
 
       .then((res) => {
-        setTests(res.data.tests);
+        const activeTests = res.data.tests.filter(
+          (test) => test.status === "active"
+        );
+        setTests(activeTests);
       });
   }, []);
 

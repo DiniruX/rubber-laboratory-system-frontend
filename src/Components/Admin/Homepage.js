@@ -14,12 +14,21 @@ function Homepage() {
   const navigate = useNavigate();
   const [selectedOrderType, setSelectedOrderType] = useState("tests");
   const [addTestModel, setAddTestModel] = useState(false);
+  const [addUserModel, setAddUserModel] = useState(false);
   const [testName, setTestName] = useState("");
   const [testPrice, setTestPrice] = useState("");
   const [outputs, setOutputs] = useState([""]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [tests, setTests] = useState([]);
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [type, setType] = useState("");
+  const [contactNo, setContactNo] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [remarks, setRemarks] = useState("");
+  const [reEnterPassword, setReEnterPassword] = useState("");
 
   const selectOrderType = (type) => {
     setSelectedOrderType(type);
@@ -31,6 +40,14 @@ function Homepage() {
 
   const closeAddTestModel = () => {
     setAddTestModel(false);
+  };
+
+  const openAddUserModel = () => {
+    setAddUserModel(true);
+  };
+
+  const closeAddUserModel = () => {
+    setAddUserModel(false);
   };
 
   const logout = () => {
@@ -82,6 +99,58 @@ function Homepage() {
       }
     } catch (error) {
       return toast("Test Already Added", { type: "error" });
+    }
+  };
+
+  const handleSubmitUser = async (e) => {
+    e.preventDefault();
+    try {
+      if (
+        name === "" ||
+        address === "" ||
+        type === "" ||
+        contactNo === "" ||
+        email === "" ||
+        password === "" ||
+        remarks === "" ||
+        reEnterPassword === ""
+      ) {
+        return toast("Please fill all fields", { type: "error" });
+      }
+      if (password != reEnterPassword) {
+        return toast("Passwords Are Not Same", { type: "error" });
+      }
+      const data = {
+        customerName: name,
+        address: address,
+        type: type,
+        companyPhoneNumber: "000",
+        companyEmail: "-",
+        contactPersonName: "-",
+        contactPersonPhoneNumber: contactNo,
+        contactPersonEmail: email,
+        remarks: remarks,
+        password: password,
+      };
+      console.log("data to send: ", data);
+      const response = await axios.post(
+        "http://localhost:8000/user/register",
+        data
+      );
+      console.log(response);
+      if (response.status === 201) {
+        toast.success("Adding New User Successful", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      } else if (response.status === 409) {
+        toast.error("User already added", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    } catch (error) {
+      return toast("User Already Added", { type: "error" });
     }
   };
 
@@ -191,7 +260,11 @@ function Homepage() {
                           <th scope="row">{index}</th>
                           <td>{val.testName}</td>
                           <td>{val.testName}</td>
-                          <td>{val.outputs}</td>
+                          <td>
+                            {val.outputs.map((testName, index) => (
+                              <li>{testName}</li>
+                            ))}
+                          </td>
                           <td>
                             {val.status === "active" ? (
                               <div className="status-good">
@@ -285,7 +358,13 @@ function Homepage() {
             ) : null}
             {selectedOrderType === "customers" ? (
               <div className="table-container">
-                <h4 className="page-subheading">All Customers</h4>
+                <h4 className="page-subheading">All Users</h4>
+                <div
+                  className="icon-background"
+                  onClick={() => openAddUserModel()}
+                >
+                  <FaPlus />
+                </div>
                 <table className="table">
                   <thead className="thead">
                     <tr>
@@ -429,6 +508,123 @@ function Homepage() {
             </div>
             <button className="btn btn-primary" onClick={handleSubmit}>
               Add Test
+            </button>
+          </form>
+        </div>
+      )}
+      {addUserModel && (
+        <div className="add-order-model">
+          <form className="form add-order-form">
+            <div className="row-container">
+              <h4 className="page-subheading">Add User</h4>
+              <IoIosCloseCircleOutline
+                className="popup-model-closer"
+                onClick={closeAddUserModel}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Staff/ Admin Name</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Admin 0912"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Address</label>
+              <div class="input-group mb-2">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inlineFormInputGroup"
+                  placeholder="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Type</label>
+              <select
+                className="form-select add-order-form-control"
+                aria-label="Select Type"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
+                <option value="" disabled>
+                  Select Type
+                </option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                {/* Add more options as needed */}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Phone Number</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="0987676563"
+                value={contactNo}
+                onChange={(e) => setContactNo(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Staff/ Admin Email</label>
+              <input
+                type="email"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="adminsample@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Remarks</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Additional info"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Password</label>
+              <input
+                type="password"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="*****"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Re-enter Password</label>
+              <input
+                type="password"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="*****"
+                value={reEnterPassword}
+                onChange={(e) => setReEnterPassword(e.target.value)}
+              />
+            </div>
+            <button className="btn btn-primary" onClick={handleSubmitUser}>
+              Add User
             </button>
           </form>
         </div>

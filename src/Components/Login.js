@@ -48,6 +48,7 @@ function Login() {
       }
     } catch (error) {
       console.error("An error occurred during login:", error.message);
+      return toast("Check the Inputs", { type: "error" });
     }
   };
 
