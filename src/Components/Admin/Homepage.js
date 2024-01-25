@@ -117,7 +117,7 @@ function Homepage() {
       ) {
         return toast("Please fill all fields", { type: "error" });
       }
-      if (password != reEnterPassword) {
+      if (password !== reEnterPassword) {
         return toast("Passwords Are Not Same", { type: "error" });
       }
       const data = {

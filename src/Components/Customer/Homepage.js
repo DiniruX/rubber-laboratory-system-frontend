@@ -18,6 +18,7 @@ function Homepage() {
   const [tests, setTests] = useState([]);
   const [requiredTests, setRequiredTests] = useState([]);
   const [requiredTestPrices, setRequiredTestPrices] = useState([]);
+  const [requiredTestOutputs, setRequiredTestOutputs] = useState([]);
   const [totalAmount, setTotalAmount] = useState("");
   const [user, setUser] = useState("");
   const [orders, setOrders] = useState([]);
@@ -47,17 +48,51 @@ function Homepage() {
       if (requiredTests === "" || totalAmount === "") {
         return toast("Please fill all fields", { type: "error" });
       }
-      const response = await axios.post("http://localhost:8000/orders/add", {
+      const data = {
         customerId: user._id,
         customerName: user.customerName,
         companyPhoneNumber: user.companyPhoneNumber,
         contactPersonPhoneNumber: user.contactPersonPhoneNumber,
         companyEmail: user.companyEmail,
         contactPersonEmail: user.contactPersonEmail,
-        requiredTests,
+        requiredTests: [],
         totalAmount,
         status: "not_started",
-      });
+      };
+
+      for (let i = 0; i < requiredTests.length; i++) {
+        const testName = requiredTests[i];
+        const price = requiredTestPrices[i];
+        const outputs = [];
+      
+        // Iterate through each output for the current test
+        for (let j = 0; j < requiredTestOutputs[i].length; j++) {
+          const outputName = requiredTestOutputs[i][j];
+          const result = 'empty'; 
+      
+          // Create an object for each output
+          const outputObject = {
+            outputName,
+            result,
+          };
+      
+          // Push the output object to the outputs array
+          outputs.push(outputObject);
+        }
+      
+        // Create an object for each test
+        const testObject = {
+          testName,
+          price,
+          outputs,
+        };
+      
+        // Push the test object to the requiredTests array in the main data
+        data.requiredTests.push(testObject);
+      }
+
+      console.log("data: ", data);
+      const response = await axios.post("http://localhost:8000/orders/add", data);
       if (response.status === 201) {
         toast.success("Order created successfully", {
           position: "top-right",
@@ -79,6 +114,7 @@ function Homepage() {
         const activeTests = res.data.tests.filter(
           (test) => test.status === "active"
         );
+        console.log(activeTests)
         setTests(activeTests);
       });
   }, []);
@@ -104,7 +140,7 @@ function Homepage() {
           setOrders(res.data);
         });
     } catch (e) {
-      console.error("No orders to display:", e.message);
+      console.error("User session timed out:", e.message);
     }
   }, []);
 
@@ -123,7 +159,7 @@ function Homepage() {
     }
   };
 
-  const handleCheckboxChange = (testName, testPrice) => {
+  const handleCheckboxChange = (testName, testPrice, outputs) => {
     if (requiredTests.includes(testName)) {
       setRequiredTests((prevTests) =>
         prevTests.filter((test) => test !== testName)
@@ -138,6 +174,13 @@ function Homepage() {
       );
     } else {
       setRequiredTestPrices((prevTests) => [...prevTests, parseFloat(price)]);
+    }
+    if (requiredTestOutputs.includes(outputs)) {
+      setRequiredTestOutputs((prevTests) =>
+        prevTests.filter((test) => test !== outputs)
+      );
+    } else {
+      setRequiredTestOutputs((prevTests) => [...prevTests, outputs]);
     }
   };
 
@@ -223,11 +266,11 @@ function Homepage() {
 
                   return (
                     <tr>
-                      <th scope="row">{index + 1}</th>
+                      <th>{index + 1}</th>
                       <td>
                         <ol>
-                          {val.requiredTests.map((testName, index) => (
-                            <li>{testName}</li>
+                          {val.requiredTests.map((values, index) => (
+                            <li>{values.testName}</li>
                           ))}
                         </ol>
                       </td>
@@ -286,7 +329,11 @@ function Homepage() {
                     className="form-check-input"
                     id={`checkbox-${index}`}
                     onChange={() =>
-                      handleCheckboxChange(val.testName, val.testPrice)
+                      handleCheckboxChange(
+                        val.testName,
+                        val.testPrice,
+                        val.outputs
+                      )
                     }
                     checked={requiredTests.includes(val.testName)}
                   />
@@ -357,8 +404,15 @@ function Homepage() {
               <div className="col-5 order-detail-title">Required Tests</div>
               <div className="col-6 order-detail-info">
                 <ol>
-                  {selectedOrder.requiredTests.map((testName, index) => (
-                    <li>{testName}</li>
+                  {selectedOrder.requiredTests.map((values, index) => (
+                    <li>
+                      {values.testName}:
+                      {values.outputs.map((values, index) => (
+                        <li>
+                          {values.outputName}:{values.result}
+                        </li>
+                      ))}
+                    </li>
                   ))}
                 </ol>
               </div>
