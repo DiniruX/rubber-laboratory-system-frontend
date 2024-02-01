@@ -9,6 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { GrStatusGoodSmall } from "react-icons/gr";
+import StartUrl from "../../configs/Url.json";
 
 function Homepage() {
   const navigate = useNavigate();
@@ -29,6 +30,12 @@ function Homepage() {
   const [password, setPassword] = useState("");
   const [remarks, setRemarks] = useState("");
   const [reEnterPassword, setReEnterPassword] = useState("");
+  const [selectedTestModel, setSelectedTestModel] = useState(false);
+  const [selectedOrderModel, setSelectedOrderModel] = useState(false);
+  const [selectedUserModel, setSelectedUserModel] = useState(false);
+  const [selectedTest, setSelectedTest] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
 
   const selectOrderType = (type) => {
     setSelectedOrderType(type);
@@ -48,6 +55,9 @@ function Homepage() {
 
   const closeAddUserModel = () => {
     setAddUserModel(false);
+    setSelectedTestModel(false)
+    setSelectedUserModel(false)
+    setSelectedOrderModel(false)
   };
 
   const logout = () => {
@@ -80,7 +90,7 @@ function Homepage() {
       if (testName === "" || testPrice === "" || outputs === "") {
         return toast("Please fill all fields", { type: "error" });
       }
-      const response = await axios.post("http://localhost:8000/tests/add", {
+      const response = await axios.post(StartUrl?.StartUrl + "/tests/add", {
         testName,
         testPrice,
         status: "active",
@@ -91,6 +101,7 @@ function Homepage() {
           position: "top-right",
           autoClose: 5000,
         });
+        setAddTestModel(false);
       } else if (response.status === 409) {
         toast.error("Test already added", {
           position: "top-right",
@@ -134,7 +145,7 @@ function Homepage() {
       };
       console.log("data to send: ", data);
       const response = await axios.post(
-        "http://localhost:8000/user/register",
+        StartUrl?.StartUrl + "/user/register",
         data
       );
       console.log(response);
@@ -156,7 +167,7 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/orders/get-all")
+      .get(StartUrl?.StartUrl + "/orders/get-all")
 
       .then((res) => {
         setOrders(res.data.orders);
@@ -165,7 +176,7 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/user/get-all")
+      .get(StartUrl?.StartUrl + "/user/get-all")
 
       .then((res) => {
         setUsers(res.data.users);
@@ -174,13 +185,54 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/tests/get-all")
+      .get(StartUrl?.StartUrl + "/tests/get-all")
 
       .then((res) => {
-        console.log("tests", res.data.tests);
         setTests(res.data.tests);
       });
   }, []);
+
+  const getSelectedTest = (id) => {
+    try {
+      axios
+        .get(StartUrl?.StartUrl + `/tests/get-test/${id}`)
+
+        .then((res) => {
+          setSelectedTest(res.data);
+          setSelectedTestModel(true);
+        });
+    } catch (e) {
+      console.log("An error occured while retreiving test, ", e.message);
+    }
+  };
+
+  const getSelectedOrder = (id) => {
+    try {
+      axios
+        .get(StartUrl?.StartUrl + `/orders/get-order/${id}`)
+
+        .then((res) => {
+          setSelectedOrder(res.data);
+          setSelectedOrderModel(true)
+        });
+    } catch (e) {
+      console.log("An error occured while retreiving order, ", e.message);
+    }
+  };
+
+  const getSelectedUser = (id) => {
+    try {
+      axios
+        .get(StartUrl?.StartUrl + `/user/get-by-id/${id}`)
+
+        .then((res) => {
+          setSelectedOrder(res.data);
+          setSelectedUserModel(true)
+        });
+    } catch (e) {
+      console.log("An error occured while retreiving user, ", e.message);
+    }
+  };
 
   return (
     <div>
@@ -242,50 +294,61 @@ function Homepage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tests.map((val, index) => {
-                      const eventDate = new Date(val.createdAt);
-                      const dateOptions = { day: "numeric" };
-                      const monthOptions = { month: "long" };
-                      const formattedDay = eventDate.toLocaleDateString(
-                        "en-US",
-                        dateOptions
-                      );
-                      const formattedMonth = eventDate.toLocaleDateString(
-                        "en-US",
-                        monthOptions
-                      );
+                    {tests.length > 0 ? (
+                      tests.map((val, index) => {
+                        const eventDate = new Date(val.createdAt);
+                        const dateOptions = { day: "numeric" };
+                        const monthOptions = { month: "long" };
+                        const formattedDay = eventDate.toLocaleDateString(
+                          "en-US",
+                          dateOptions
+                        );
+                        const formattedMonth = eventDate.toLocaleDateString(
+                          "en-US",
+                          monthOptions
+                        );
 
-                      return (
-                        <tr>
-                          <th scope="row">{index}</th>
-                          <td>{val.testName}</td>
-                          <td>{val.testName}</td>
-                          <td>
-                            {val.outputs.map((testName, index) => (
-                              <li>{testName}</li>
-                            ))}
-                          </td>
-                          <td>
-                            {val.status === "active" ? (
-                              <div className="status-good">
-                                <GrStatusGoodSmall />
-                              </div>
-                            ) : (
-                              <div className="status-bad">
-                                <GrStatusGoodSmall />
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            {formattedMonth} {formattedDay},{" "}
-                            {eventDate.getFullYear()}
-                          </td>
-                          <td>
-                            <button className="btn btn-primary">Review</button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr>
+                            <th scope="row">{index + 1}</th>
+                            <td>{val.testName}</td>
+                            <td>{val.testName}</td>
+                            <td>
+                              {val.outputs.map((testName, index) => (
+                                <li>{testName}</li>
+                              ))}
+                            </td>
+                            <td>
+                              {val.status === "active" ? (
+                                <div className="status-good">
+                                  <GrStatusGoodSmall />
+                                </div>
+                              ) : (
+                                <div className="status-bad">
+                                  <GrStatusGoodSmall />
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              {formattedMonth} {formattedDay},{" "}
+                              {eventDate.getFullYear()}
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => getSelectedTest(val._id)}
+                              >
+                                Review
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <div style={{ fontWeight: "600" }}>
+                        No tests to display
+                      </div>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -307,51 +370,62 @@ function Homepage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((val, index) => {
-                      const eventDate = new Date(val.createdAt);
-                      const dateOptions = { day: "numeric" };
-                      const monthOptions = { month: "long" };
-                      const formattedDay = eventDate.toLocaleDateString(
-                        "en-US",
-                        dateOptions
-                      );
-                      const formattedMonth = eventDate.toLocaleDateString(
-                        "en-US",
-                        monthOptions
-                      );
+                    {orders.length > 0 ? (
+                      orders.map((val, index) => {
+                        const eventDate = new Date(val.createdAt);
+                        const dateOptions = { day: "numeric" };
+                        const monthOptions = { month: "long" };
+                        const formattedDay = eventDate.toLocaleDateString(
+                          "en-US",
+                          dateOptions
+                        );
+                        const formattedMonth = eventDate.toLocaleDateString(
+                          "en-US",
+                          monthOptions
+                        );
 
-                      return (
-                        <tr>
-                          <th scope="row">{index}</th>
-                          <td>{val.customerName}</td>
-                          <td>{val.companyEmail}</td>
-                          <td>{val.contactPersonEmail}</td>
-                          <td>{val.totalAmount}</td>
-                          <td>
-                            {val.status === "Completed" ? (
-                              <div className="status-good">
-                                <GrStatusGoodSmall />
-                              </div>
-                            ) : val.status === "Pending" ? (
-                              <div className="status-progress">
-                                <GrStatusGoodSmall />
-                              </div>
-                            ) : (
-                              <div className="status-bad">
-                                <GrStatusGoodSmall />
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            {formattedMonth} {formattedDay},{" "}
-                            {eventDate.getFullYear()}
-                          </td>
-                          <td>
-                            <button className="btn btn-primary">Review</button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr>
+                            <th scope="row">{index + 1}</th>
+                            <td>{val.customerName}</td>
+                            <td>{val.companyEmail}</td>
+                            <td>{val.contactPersonEmail}</td>
+                            <td>{val.totalAmount}</td>
+                            <td>
+                              {val.status === "completed" ? (
+                                <div className="status-good">
+                                  <GrStatusGoodSmall />
+                                </div>
+                              ) : val.status === "in_progress" ? (
+                                <div className="status-progress">
+                                  <GrStatusGoodSmall />
+                                </div>
+                              ) : (
+                                <div className="status-bad">
+                                  <GrStatusGoodSmall />
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              {formattedMonth} {formattedDay},{" "}
+                              {eventDate.getFullYear()}
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => getSelectedOrder(val._id)}
+                              >
+                                Review
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <div style={{ fontWeight: "600" }}>
+                        No orders to display
+                      </div>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -380,59 +454,72 @@ function Homepage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((val, index) => {
-                      const eventDate = new Date(val.createdAt);
-                      const dateOptions = { day: "numeric" };
-                      const monthOptions = { month: "long" };
-                      const formattedDay = eventDate.toLocaleDateString(
-                        "en-US",
-                        dateOptions
-                      );
-                      const formattedMonth = eventDate.toLocaleDateString(
-                        "en-US",
-                        monthOptions
-                      );
+                    {users.length > 0 ? (
+                      users.map((val, index) => {
+                        const eventDate = new Date(val.createdAt);
+                        const dateOptions = { day: "numeric" };
+                        const monthOptions = { month: "long" };
+                        const formattedDay = eventDate.toLocaleDateString(
+                          "en-US",
+                          dateOptions
+                        );
+                        const formattedMonth = eventDate.toLocaleDateString(
+                          "en-US",
+                          monthOptions
+                        );
 
-                      return (
-                        <tr>
-                          <th scope="row">{index}</th>
-                          <td>
-                            {val.type === "admin" ? (
-                              <div style={{ color: "red", fontWeight: "600" }}>
-                                Admin
-                              </div>
-                            ) : val.type === "staff" ? (
-                              <div
-                                style={{
-                                  color: "rgb(255, 145, 0)",
-                                  fontWeight: "600",
-                                }}
+                        return (
+                          <tr>
+                            <th scope="row">{index + 1}</th>
+                            <td>
+                              {val.type === "admin" ? (
+                                <div
+                                  style={{ color: "red", fontWeight: "600" }}
+                                >
+                                  Admin
+                                </div>
+                              ) : val.type === "staff" ? (
+                                <div
+                                  style={{
+                                    color: "rgb(255, 145, 0)",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Staff
+                                </div>
+                              ) : (
+                                <div
+                                  style={{ color: "green", fontWeight: "600" }}
+                                >
+                                  Customer
+                                </div>
+                              )}
+                            </td>
+                            <td>{val.customerName}</td>
+                            <td>{val.contactPersonName}</td>
+                            <td>{val.contactPersonEmail}</td>
+                            <td>{val.companyEmail}</td>
+                            <td>{val.remarks}</td>
+                            <td>
+                              {formattedMonth} {formattedDay},{" "}
+                              {eventDate.getFullYear()}
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => getSelectedUser(val._id)}
                               >
-                                Staff
-                              </div>
-                            ) : (
-                              <div
-                                style={{ color: "green", fontWeight: "600" }}
-                              >
-                                Customer
-                              </div>
-                            )}
-                          </td>
-                          <td>{val.customerName}</td>
-                          <td>{val.contactPersonName}</td>
-                          <td>{val.contactPersonEmail}</td>
-                          <td>{val.companyEmail}</td>
-                          <td>{val.remarks}</td>
-                          <td>
-                            {formattedMonth} {formattedDay},{" "}
-                            {eventDate.getFullYear()}
-                          </td>
-                          <td>
-                            <button className="btn btn-primary">Review</button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                                Review
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <div style={{ fontWeight: "600" }}>
+                        No orders to display
+                      </div>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -626,6 +713,178 @@ function Homepage() {
             <button className="btn btn-primary" onClick={handleSubmitUser}>
               Add User
             </button>
+          </form>
+        </div>
+      )}
+      {selectedTestModel && (
+        <div className="add-order-model">
+          <form className="form add-order-form">
+            <div className="row-container">
+              <h4 className="page-subheading">Review Test</h4>
+              <IoIosCloseCircleOutline
+                className="popup-model-closer"
+                onClick={closeAddUserModel}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Name</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.testName}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Outputs</label>
+              {selectedTest.outputs.map((value, index) => (
+                <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">Rs.</div>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="inlineFormInputGroup"
+                    placeholder="Outputs"
+                    value={value}
+                    disabled
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Created</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.createdAt}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Last Updated</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.updatedAt}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Price</label>
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Rs.</div>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inlineFormInputGroup"
+                  placeholder="Username"
+                  value={selectedTest.testPrice}
+                  disabled
+                />
+                <div class="input-group-prepend">
+                  <div class="input-group-text">/= only</div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+      {selectedOrderModel && (
+        <div className="add-order-model">
+          <form className="form add-order-form">
+            <div className="row-container">
+              <h4 className="page-subheading">Review Test</h4>
+              <IoIosCloseCircleOutline
+                className="popup-model-closer"
+                onClick={closeAddUserModel}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Name</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.testName}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Outputs</label>
+              {selectedTest.outputs.map((value, index) => (
+                <div class="input-group mb-2">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">Rs.</div>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="inlineFormInputGroup"
+                    placeholder="Outputs"
+                    value={value}
+                    disabled
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Test Created</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.createdAt}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Last Updated</label>
+              <input
+                type="text"
+                className="form-control add-order-form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Test 01"
+                value={selectedTest.updatedAt}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Price</label>
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Rs.</div>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inlineFormInputGroup"
+                  placeholder="Username"
+                  value={selectedTest.testPrice}
+                  disabled
+                />
+                <div class="input-group-prepend">
+                  <div class="input-group-text">/= only</div>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       )}

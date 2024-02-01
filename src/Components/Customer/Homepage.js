@@ -11,6 +11,10 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEye } from "react-icons/fa";
+import StartUrl from "../../configs/Url.json";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { FaFileDownload } from "react-icons/fa";
 
 function Homepage() {
   const navigate = useNavigate();
@@ -18,12 +22,14 @@ function Homepage() {
   const [tests, setTests] = useState([]);
   const [requiredTests, setRequiredTests] = useState([]);
   const [requiredTestPrices, setRequiredTestPrices] = useState([]);
+  const [requiredTestPriceIndexes, setRequiredTestPriceIndexes] = useState([]);
   const [requiredTestOutputs, setRequiredTestOutputs] = useState([]);
   const [totalAmount, setTotalAmount] = useState("");
   const [user, setUser] = useState("");
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState("");
   const [selectedOrderModel, setSelectedOrderModel] = useState(false);
+  const [displayPrintSheet, setdisplayPrintSheet] = useState(false);
 
   const logout = () => {
     Cookies.remove("user_type");
@@ -64,35 +70,38 @@ function Homepage() {
         const testName = requiredTests[i];
         const price = requiredTestPrices[i];
         const outputs = [];
-      
+
         // Iterate through each output for the current test
         for (let j = 0; j < requiredTestOutputs[i].length; j++) {
           const outputName = requiredTestOutputs[i][j];
-          const result = 'empty'; 
-      
+          const result = "empty";
+
           // Create an object for each output
           const outputObject = {
             outputName,
             result,
           };
-      
+
           // Push the output object to the outputs array
           outputs.push(outputObject);
         }
-      
+
         // Create an object for each test
         const testObject = {
           testName,
           price,
           outputs,
         };
-      
+
         // Push the test object to the requiredTests array in the main data
         data.requiredTests.push(testObject);
       }
 
       console.log("data: ", data);
-      const response = await axios.post("http://localhost:8000/orders/add", data);
+      const response = await axios.post(
+        StartUrl?.StartUrl + "/orders/add",
+        data
+      );
       if (response.status === 201) {
         toast.success("Order created successfully", {
           position: "top-right",
@@ -108,13 +117,13 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/tests/get-all")
+      .get(StartUrl?.StartUrl + "/tests/get-all")
 
       .then((res) => {
         const activeTests = res.data.tests.filter(
           (test) => test.status === "active"
         );
-        console.log(activeTests)
+        console.log(activeTests);
         setTests(activeTests);
       });
   }, []);
@@ -122,7 +131,7 @@ function Homepage() {
   useEffect(() => {
     const id = Cookies.get("user_id");
     axios
-      .get(`http://localhost:8000/user/get-by-id/${id}`)
+      .get(StartUrl?.StartUrl + `/user/get-by-id/${id}`)
 
       .then((res) => {
         setUser(res.data);
@@ -133,11 +142,17 @@ function Homepage() {
     const id = Cookies.get("user_id");
     try {
       axios
-        .get(`http://localhost:8000/orders/get-by-user/${id}`)
-
+        .get(StartUrl?.StartUrl + `/orders/get-by-user/${id}`)
         .then((res) => {
-          console.log(res.data);
+          console.log("response: ", res);
           setOrders(res.data);
+        })
+        .catch((error) => {
+          if (error.response && error.response.status === 404) {
+            console.log("User doesn't have any orders.");
+          } else {
+            console.error("Error fetching orders:", error.message);
+          }
         });
     } catch (e) {
       console.error("User session timed out:", e.message);
@@ -148,7 +163,7 @@ function Homepage() {
     const id = Cookies.get("user_id");
     try {
       axios
-        .get(`http://localhost:8000/orders/get-by-user/${id}`)
+        .get(StartUrl?.StartUrl + `/orders/get-by-user/${id}`)
 
         .then((res) => {
           console.log(res.data);
@@ -159,7 +174,7 @@ function Homepage() {
     }
   };
 
-  const handleCheckboxChange = (testName, testPrice, outputs) => {
+  const handleCheckboxChange = (testName, testPrice, outputs, index) => {
     if (requiredTests.includes(testName)) {
       setRequiredTests((prevTests) =>
         prevTests.filter((test) => test !== testName)
@@ -168,12 +183,21 @@ function Homepage() {
       setRequiredTests((prevTests) => [...prevTests, testName]);
     }
     const price = parseFloat(testPrice);
-    if (requiredTestPrices.includes(price)) {
+    if (
+      requiredTestPrices.includes(price) &&
+      requiredTestPriceIndexes.includes(index)
+    ) {
+      console.log("price removed: ", price + ". index: ", index);
       setRequiredTestPrices((prevTests) =>
         prevTests.filter((test) => test !== price)
       );
+      setRequiredTestPriceIndexes((prevTests) =>
+        prevTests.filter((test) => test !== index)
+      );
     } else {
+      console.log("price added: ", price + ". index: ", index);
       setRequiredTestPrices((prevTests) => [...prevTests, parseFloat(price)]);
+      setRequiredTestPriceIndexes((prevTests) => [...prevTests, index]);
     }
     if (requiredTestOutputs.includes(outputs)) {
       setRequiredTestOutputs((prevTests) =>
@@ -193,18 +217,20 @@ function Homepage() {
   };
 
   useEffect(() => {
+    console.log("tests prices: ", requiredTestPrices);
+    console.log("tests prices indexes: ", requiredTestPriceIndexes);
     const totalAmount = requiredTestPrices.reduce(
       (totalAmount, test) => totalAmount + parseFloat(test),
       0
     );
     setTotalAmount(totalAmount.toString());
-  }, [requiredTestPrices]);
+  }, [requiredTestPrices, requiredTestPriceIndexes]);
 
   const handleSelectedOrder = (id) => {
     console.log(id);
     try {
       axios
-        .get(`http://localhost:8000/orders/get-order/${id}`)
+        .get(StartUrl?.StartUrl + `/orders/get-order/${id}`)
 
         .then((res) => {
           console.log(res.data);
@@ -221,6 +247,28 @@ function Homepage() {
   const monthOptions = { month: "long" };
   const formattedDay = eventDate.toLocaleDateString("en-US", dateOptions);
   const formattedMonth = eventDate.toLocaleDateString("en-US", monthOptions);
+
+  const exportToPdf = () => {
+    setTimeout(() => {
+      // Delay the PDF generation slightly
+      const input = document.getElementById("order-info");
+      html2canvas(input).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "landscape", // Set landscape orientation
+          unit: "mm", // Set unit to millimeters
+          format: "a5", // Set paper format to A5
+        });
+        const padding = 10; // Set padding value in millimeters
+        const imgWidth = pdf.internal.pageSize.getWidth() - padding * 2;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Adjust height based on image aspect ratio
+        const x = padding; // Adjust X position for left padding
+        const y = padding; // Adjust Y position for top padding
+        pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        pdf.save("generated_pdf.pdf");
+      });
+    }, 500); // Adjust delay as needed
+  };
 
   return (
     <div>
@@ -282,14 +330,17 @@ function Homepage() {
                         {val.status === "not_started" ? (
                           <div className="status-bad">
                             <GrStatusGoodSmall />
+                            &nbsp; Not Started
                           </div>
                         ) : val.status === "in_progress" ? (
                           <div className="status-progress">
                             <GrStatusGoodSmall />
+                            &nbsp; In Progress
                           </div>
                         ) : (
                           <div className="status-good">
                             <GrStatusGoodSmall />
+                            &nbsp; Completed
                           </div>
                         )}
                       </td>
@@ -332,7 +383,8 @@ function Homepage() {
                       handleCheckboxChange(
                         val.testName,
                         val.testPrice,
-                        val.outputs
+                        val.outputs,
+                        index
                       )
                     }
                     checked={requiredTests.includes(val.testName)}
@@ -359,12 +411,13 @@ function Homepage() {
         </div>
       )}
       {selectedOrderModel && (
-        <div className="add-order-model">
-          <form className="form add-order-form">
+        <div className="add-order-model" id="order-info">
+          <form className="form add-order-form" style={{ width: "80%" }}>
             <div className="row-container">
               <h4 className="page-subheading">Order Information</h4>
               <IoIosCloseCircleOutline
                 className="popup-model-closer"
+                id="popup-model-closer"
                 onClick={hideAddOrderModel}
               />
             </div>
@@ -403,18 +456,31 @@ function Homepage() {
               </div>
               <div className="col-5 order-detail-title">Required Tests</div>
               <div className="col-6 order-detail-info">
-                <ol>
-                  {selectedOrder.requiredTests.map((values, index) => (
-                    <li>
-                      {values.testName}:
-                      {values.outputs.map((values, index) => (
-                        <li>
-                          {values.outputName}:{values.result}
-                        </li>
-                      ))}
-                    </li>
-                  ))}
-                </ol>
+                {selectedOrder.requiredTests.map((values, index) => (
+                  <div>
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th colSpan={values.outputs.length}>
+                            {values.testName}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          {values.outputs.map((values, index) => (
+                            <th>{values.outputName}</th>
+                          ))}
+                        </tr>
+                        <tr>
+                          {values.outputs.map((values, index) => (
+                            <td>{values.result}</td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
               </div>
               <div className="col-5 order-detail-title">Total Fee</div>
               <div className="col-6 order-detail-info">
@@ -423,11 +489,17 @@ function Homepage() {
               <div className="col-5 order-detail-title">Order Status</div>
               <div className="col-6 order-detail-info">
                 {selectedOrder.status === "not_started" ? (
-                  <div>Not Started</div>
+                  <div style={{ fontWeight: "600", color: "red" }}>
+                    Not Started
+                  </div>
                 ) : selectedOrder.status === "in_progress" ? (
-                  <div>In Progress</div>
+                  <div style={{ fontWeight: "600", color: "#bcbcbc" }}>
+                    In Progress
+                  </div>
                 ) : (
-                  <div>Completed</div>
+                  <div style={{ fontWeight: "600", color: "green" }}>
+                    Completed
+                  </div>
                 )}
               </div>
               <div className="col-5 order-detail-title">Created Date</div>
@@ -435,6 +507,7 @@ function Homepage() {
                 {formattedMonth} {formattedDay}, {eventDate.getFullYear()}
               </div>
             </div>
+            <FaFileDownload className="popup-model-topdf" onClick={exportToPdf} />
           </form>
         </div>
       )}

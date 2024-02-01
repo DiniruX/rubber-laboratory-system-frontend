@@ -6,6 +6,8 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import StartUrl from "../../configs/Url.json";
+import emailjs from "@emailjs/browser";
 
 function Homepage() {
   const navigate = useNavigate();
@@ -40,7 +42,7 @@ function Homepage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/orders/get-all")
+      .get(StartUrl?.StartUrl + "/orders/get-all")
 
       .then((res) => {
         const inProgorders = res.data.orders.filter(
@@ -55,40 +57,55 @@ function Homepage() {
           (order) => order.status === "completed"
         );
         setCompletedOrders(completedOrders);
+      })
+      .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          console.log("No orders to display.");
+        } else {
+          console.error("Error fetching orders:", error.message);
+        }
       });
   }, []);
 
   const fetchOrders = () => {
-    try{
+    try {
       axios
-      .get("http://localhost:8000/orders/get-all")
+        .get(StartUrl?.StartUrl + "/orders/get-all")
 
-      .then((res) => {
-        const inProgorders = res.data.orders.filter(
-          (order) => order.status === "in_progress"
-        );
-        setInProgOrders(inProgorders);
-        const notStartedOrders = res.data.orders.filter(
-          (order) => order.status === "not_started"
-        );
-        setNotStartedOrders(notStartedOrders);
-        const completedOrders = res.data.orders.filter(
-          (order) => order.status === "completed"
-        );
-        setCompletedOrders(completedOrders);
-      });
-    } catch(e){
+        .then((res) => {
+          const inProgorders = res.data.orders.filter(
+            (order) => order.status === "in_progress"
+          );
+          setInProgOrders(inProgorders);
+          const notStartedOrders = res.data.orders.filter(
+            (order) => order.status === "not_started"
+          );
+          setNotStartedOrders(notStartedOrders);
+          const completedOrders = res.data.orders.filter(
+            (order) => order.status === "completed"
+          );
+          setCompletedOrders(completedOrders);
+        });
+    } catch (e) {
       console.error("An error occurred during order updating:", e.message);
     }
-  }
+  };
 
   useEffect(() => {
     const id = Cookies.get("user_id");
     axios
-      .get(`http://localhost:8000/user/get-by-id/${id}`)
+      .get(StartUrl?.StartUrl + `/user/get-by-id/${id}`)
 
       .then((res) => {
         setUser(res.data);
+      })
+      .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          console.log("User session timed out.");
+          navigate("/");
+        } else {
+          console.error("Error fetching orders:", error.message);
+        }
       });
   }, []);
 
@@ -99,7 +116,7 @@ function Homepage() {
   const handleSelectedOrder = (id) => {
     try {
       axios
-        .get(`http://localhost:8000/orders/get-order/${id}`)
+        .get(StartUrl?.StartUrl + `/orders/get-order/${id}`)
 
         .then((res) => {
           setSelectedOrder(res.data);
@@ -158,19 +175,19 @@ function Homepage() {
       }
       try {
         const data = {
-          customerId: user._id,
-          customerName: user.customerName,
-          companyPhoneNumber: user.companyPhoneNumber,
-          contactPersonPhoneNumber: user.contactPersonPhoneNumber,
-          companyEmail: user.companyEmail,
-          contactPersonEmail: user.contactPersonEmail,
+          customerId: selectedOrder.customerId,
+          customerName: selectedOrder.customerName,
+          companyPhoneNumber: selectedOrder.companyPhoneNumber,
+          contactPersonPhoneNumber: selectedOrder.contactPersonPhoneNumber,
+          companyEmail: selectedOrder.companyEmail,
+          contactPersonEmail: selectedOrder.contactPersonEmail,
           requiredTests: outputValues,
           totalAmount: selectedOrder.totalAmount,
           status: updatedStatus,
         };
         console.log("updated data: ", data);
         const response = await axios.put(
-          `http://localhost:8000/orders/update-order/${id}`,
+          StartUrl?.StartUrl + `/orders/update-order/${id}`,
           data
         );
         console.log("response: ", response);
@@ -192,7 +209,7 @@ function Homepage() {
         };
         console.log("updated data: ", data);
         const response = await axios.put(
-          `http://localhost:8000/orders/update-order-status/${id}`,
+          StartUrl?.StartUrl + `/orders/update-order-status/${id}`,
           data
         );
         console.log("response: ", response);
@@ -208,6 +225,32 @@ function Homepage() {
         console.error("An error occurred during order updating:", e.message);
       }
     }
+  };
+
+  const sendEmail = (e) => {
+    e.preventDefault();
+
+    const serviceId = "service_y4h1h0d";
+    const templateId = "template_fjq1ten";
+    const publicKey = "user_4Ty61vRi47OewtmEVjcGx";
+    const templateParams = {
+      order_id: selectedOrder._id,
+      to_name: selectedOrder.customerName,
+      created_date: selectedOrder.createdAt,
+      user_email: selectedOrder.contactPersonEmail,
+    };
+    console.log("email params: ", templateParams);
+    emailjs
+      .send(serviceId, templateId, templateParams, publicKey)
+      .then((response) => {
+        toast.success("Email Sent Successfully", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      })
+      .catch((e) => {
+        return toast("Error Sending Email", { type: "error" });
+      });
   };
 
   return (
@@ -399,7 +442,12 @@ function Homepage() {
                           <td>{val.customerName}</td>
                           <td>{val.contactPersonPhoneNumber}</td>
                           <td>
-                            <div>Review</div>
+                            <button
+                              className="btn btn-success"
+                              onClick={() => handleSelectedOrder(val._id)}
+                            >
+                              View
+                            </button>
                           </td>
                         </tr>
                       );
@@ -433,53 +481,97 @@ function Homepage() {
                 disabled
               />
             </div>
-            <div className="mb-3">
-              <h5>Required Tests</h5>
-              {selectedOrder.requiredTests.map((value, outputIndex) => (
-                <div>
-                  <div className="order-test-title">
-                    <b> {value.testName}</b>
-                  </div>
-                  <h6>Outputs</h6>
+            {selectedOrder.status === "not_started" ? (
+              <div className="mb-3">
+                <h5>Required Tests</h5>
+                {selectedOrder.requiredTests.map((value, outputIndex) => (
                   <div>
-                    {value.outputs.map((val, testIndex) => {
-                      return (
-                        <div className="mb-3 row">
-                          <div className=" col-2 test-output-title">
-                            {val.outputName}
+                    <div className="order-test-title">
+                      <b> {value.testName}</b>
+                    </div>
+                    <h6>Outputs</h6>
+                    <div>
+                      {value.outputs.map((val, testIndex) => {
+                        return (
+                          <div className="mb-3 row">
+                            <div className=" col-2 test-output-title">
+                              {val.outputName}
+                            </div>
+                            <div className="col-10">
+                              <input
+                                type="text"
+                                className="form-control add-order-form-control"
+                                id={`exampleInputEmail1_${testIndex}`}
+                                aria-describedby="emailHelp"
+                                placeholder={val?.result || ""}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    outputIndex,
+                                    testIndex,
+                                    e.target.value,
+                                    value.testName,
+                                    value.price,
+                                    val.outputName
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
-                          <div className="col-10">
-                            <input
-                              type="text"
-                              className="form-control add-order-form-control"
-                              id={`exampleInputEmail1_${testIndex}`}
-                              aria-describedby="emailHelp"
-                              placeholder={val?.result || ""}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  outputIndex,
-                                  testIndex,
-                                  e.target.value,
-                                  value.testName,
-                                  value.price,
-                                  val.outputName
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
+                ))}
+              </div>
+            ) : (
+              <div className="mb-3">
+                <h5>Required Tests</h5>
+                {selectedOrder.requiredTests.map((value, outputIndex) => (
+                  <div>
+                    <div className="order-test-title">
+                      <b> {value.testName}</b>
+                    </div>
+                    <h6>Outputs</h6>
+                    <div>
+                      {value.outputs.map((val, testIndex) => {
+                        return (
+                          <div className="mb-3 row">
+                            <div className=" col-2 test-output-title">
+                              {val.outputName}
+                            </div>
+                            <div className="col-10">
+                              <input
+                                type="text"
+                                className="form-control add-order-form-control"
+                                id={`exampleInputEmail1_${testIndex}`}
+                                aria-describedby="emailHelp"
+                                placeholder={val?.result || ""}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    outputIndex,
+                                    testIndex,
+                                    e.target.value,
+                                    value.testName,
+                                    value.price,
+                                    val.outputName
+                                  )
+                                }
+                                disabled
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {selectedOrder.status === "not_started" ? (
               <button className="btn btn-primary" onClick={handleSubmit}>
                 Update Order
               </button>
-            ) : (
+            ) : selectedOrder.status === "in_progress" ? (
               <div>
                 <div class="form-check mb-3 mt-5">
                   <input
@@ -496,6 +588,13 @@ function Homepage() {
                 </div>
                 <button className="btn btn-success" onClick={handleSubmit}>
                   Finish Order
+                </button>
+              </div>
+            ) : (
+              <div className="mt-3" style={{ color: "green" }}>
+                Order completed and cannot change. &nbsp;
+                <button className="btn btn-warning" onClick={sendEmail}>
+                  Notify Customer
                 </button>
               </div>
             )}

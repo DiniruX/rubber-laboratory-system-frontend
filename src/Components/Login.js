@@ -5,21 +5,23 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import StartUrl from "../configs/Url.json";
 
 function Login() {
   const navigate = useNavigate();
 
   const [contactPersonEmail, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
       if (contactPersonEmail === "" || password === "") {
         return toast("Please fill all fields", { type: "error" });
       }
-      const response = await axios.post("http://localhost:8000/user/login", {
+      const response = await axios.post(StartUrl?.StartUrl + "/user/login", {
         contactPersonEmail,
         password,
       });
@@ -49,6 +51,8 @@ function Login() {
     } catch (error) {
       console.error("An error occurred during login:", error.message);
       return toast("Check the Inputs", { type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,9 +87,14 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <button type="submit" className="btn btn-primary">
-              Login
-            </button>
+            <div
+              style={{ display: "flex", flexDirection: "row" }}
+            >
+              <button type="submit" className="btn btn-primary">
+                Login
+              </button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              {loading && <div class="loader"></div>}
+            </div>
             <div className="sub-text mt-5">
               Don't have an account? <a href="/register">Register here</a>
             </div>

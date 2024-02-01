@@ -1,3 +1,5 @@
 {
-    "StartUrl":"https://rubber-laboratory-system-backend.onrender.com"
+    "StartUrl":"https://rubber-laboratory-system-backend.onrender.com",
+    "StartUrl2":"http://localhost:8000"
+    
 }

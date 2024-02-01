@@ -3,6 +3,7 @@ import "../Styles.css";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import StartUrl from "../../configs/Url.json";
 
 function Registration() {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ function Registration() {
       if (formData?.password === reEnterPassword) {
         console.log("running register: ", formData);
         const response = await axios.post(
-          "http://localhost:8000/user/register",
+          StartUrl?.StartUrl + "/user/register",
           formData
         );
         console.log("response: ", response);
